@@ -34,26 +34,46 @@ Build produksi: `npm run build` lalu `node .output/server/index.mjs`.
 3. **Port**: `8000`.
 4. **Environment variables**:
    ```
-   NUXT_PUBLIC_API_BASE=https://api-bengkel-production.up.railway.app/api
+   NUXT_PUBLIC_API_BASE=https://apibengkel.hamztech.my.id/api
    ```
-   (atau `https://api.domainmu.com/api` bila pakai Cloudflare)
+   (sebelum domain custom aktif bisa pakai domain Railway `https://<app>.up.railway.app/api`)
 5. **Deploy** → URL seperti `https://cms-bengkel-<org>.koyeb.app`.
 
 ---
 
-## 🌐 Custom Domain via Cloudflare (subdomain `cms`)
+## 🌐 Custom Domain via Cloudflare — `cmsbengkel.hamztech.my.id`
 
-1. **Koyeb** → service → *Settings* → **Domains** → **Add domain** → `cms.domainmu.com`. Catat target CNAME-nya.
-2. **Cloudflare** → **DNS** → **Add record**: Type `CNAME` · Name `cms` · Target `xxxx.koyeb.app` · Proxy **DNS only** dulu, aktifkan oranye setelah SSL terbit.
-3. Panel admin di `https://cms.domainmu.com`.
+Panel admin dipasang di **`cmsbengkel.hamztech.my.id`** (Koyeb). Prasyarat: domain `hamztech.my.id` aktif di Cloudflare.
 
-> Total ekosistem 3 subdomain: `api` (Railway), `cms` (repo ini, Koyeb), `www` (web-bengkel, Koyeb).
+**Langkah 1 — Koyeb:** app cms-bengkel → **Settings** → **Domains** → **Add domain** → `cmsbengkel.hamztech.my.id`. Salin target CNAME (mis. `cms-bengkel-xxxx.koyeb.app`).
+
+**Langkah 2 — Cloudflare DNS** (`hamztech.my.id` → DNS → Add record):
+
+| Type | Name | Target | Proxy | TTL |
+|---|---|---|---|---|
+| `CNAME` | `cmsbengkel` | `cms-bengkel-xxxx.koyeb.app` *(dari Koyeb)* | **DNS only** (abu-abu) | Auto |
+
+> Wajib **DNS only** dulu agar Koyeb bisa menerbitkan SSL. Setelah aktif boleh **Proxied** + SSL/TLS **Full (strict)**.
+
+**Langkah 3 — Tes:** buka `https://cmsbengkel.hamztech.my.id`.
+
+**Langkah 4 — Env Koyeb** (lalu Redeploy):
+```
+NUXT_PUBLIC_API_BASE=https://apibengkel.hamztech.my.id/api
+```
+
+**🗺️ Peta domain ekosistem:**
+| Subdomain | Tujuan | Platform |
+|---|---|---|
+| `apibengkel.hamztech.my.id` | API Laravel | Railway |
+| `cmsbengkel.hamztech.my.id` | Panel admin (repo ini) | Koyeb |
+| `webbengkel.hamztech.my.id` | Website publik | Koyeb |
 
 ---
 
 ## 🔒 Catatan
 - CMS menyimpan token di cookie `admin_token`; non-admin otomatis ditolak.
-- Pastikan origin CMS diizinkan oleh CORS API. Di API set `FRONTEND_URLS` (mis. `https://cms.domainmu.com,https://www.domainmu.com`) atau `*`.
+- Pastikan origin CMS diizinkan oleh CORS API. Di Railway set `FRONTEND_URLS=https://webbengkel.hamztech.my.id,https://cmsbengkel.hamztech.my.id` (atau `*`).
 
 ## 🛠️ Stack
 Nuxt 4 (SSR) · Vue 3 · Tailwind CSS v4 · Pinia · @nuxt/icon (Lucide).
