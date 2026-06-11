@@ -1,0 +1,35 @@
+name: Deploy to Koyeb
+
+# CARA TERMUDAH (disarankan): hubungkan repo ini di dashboard Koyeb sekali,
+# Koyeb akan auto-deploy setiap push ke main — tanpa workflow ini.
+#
+# Workflow ini OPSIONAL untuk men-trigger redeploy via CLI. Jalan hanya bila
+# secret KOYEB_TOKEN di-set. Tambahkan di Settings > Secrets > Actions:
+#   KOYEB_TOKEN   = API token Koyeb (Account Settings > API)
+#   KOYEB_SERVICE = "<app>/<service>" (mis. "cms-bengkel/cms-bengkel")
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cek konfigurasi
+        id: cfg
+        run: |
+          if [ -z "${{ secrets.KOYEB_TOKEN }}" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::KOYEB_TOKEN belum di-set — deploy dilewati (gunakan auto-deploy native Koyeb)."
+          fi
+
+      - name: Install Koyeb CLI
+        if: steps.cfg.outputs.skip != 'true'
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
+          echo "$HOME/.koyeb/bin" >> "$GITHUB_PATH"
+
+      - name: Redeploy service
+        if: steps.cfg.outputs.skip != 'true'
+        run: koyeb services redeploy "${{ secrets.KOYEB_SERVICE }}" --token "${{ secrets.KOYEB_TOKEN }}"
